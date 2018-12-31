@@ -1,11 +1,13 @@
+package game;
+
 import java.util.Scanner;
 
-public class GameLauncher {
+public class Launcher {
 
     public static void main(String[] args) {
         var scanner = new Scanner(System.in);
 
-        var game = new GameEngine(scanner);
+        var game = new Engine(scanner);
 
         game.run();
 

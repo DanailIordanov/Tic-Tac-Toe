@@ -1,6 +1,12 @@
+package game;
+
+import players.ArtificialPlayer;
+import players.BasePlayer;
+import players.RegularPlayer;
+
 import java.util.Scanner;
 
-public class GameEngine {
+public class Engine {
 
     private static final String CURRENT_STATUS = "Current status: %d : %d\n";
     private static final String NEXT_PLAYER = "Now it is Player %s's turn\n";
@@ -9,17 +15,17 @@ public class GameEngine {
 
     private Board board;
     private Display display;
-    private Player playerX;
-    private Player playerO;
+    private BasePlayer playerX;
+    private BasePlayer playerO;
     private char lastPlayerToWin;
     private int round;
     private boolean somePlayerHasWon;
 
-    public GameEngine(Scanner scanner) {
-        this.board = new Board(scanner);
+    public Engine(Scanner scanner) {
+        this.board = new Board();
         this.display = new Display(this.board);
-        this.playerX = new Player('X');
-        this.playerO = new Player('O');
+        this.playerX = new RegularPlayer('X', this.board, scanner);
+        this.playerO = new ArtificialPlayer('O', this.board, scanner);
     }
 
 
@@ -36,17 +42,15 @@ public class GameEngine {
             }
 
             var currentPlayer = this.choosePlayer(counter++, lastPlayerToWin);
-
-            int move = this.board.validateMove();
-
-            this.board.makeMove(currentPlayer.getSymbol(), move);
+            System.out.printf("Player %s: ", currentPlayer.getSymbol());
+            currentPlayer.makeMove();
 
             this.endTurn(currentPlayer);
         }
 
     }
 
-    private Player choosePlayer(int counter, char lastPlayerToWin) {
+    private BasePlayer choosePlayer(int counter, char lastPlayerToWin) {
         if (lastPlayerToWin == 'O' && this.round < 2) {
             return counter % 2 == 0 ? this.playerO : this.playerX;
         } else {
@@ -54,23 +58,23 @@ public class GameEngine {
         }
     }
 
-    private void endTurn(Player currentPlayer) {
-        if (this.board.check(currentPlayer.getSymbol())) {
-            lastPlayerToWin = currentPlayer.getSymbol();
+    private void endTurn(BasePlayer currentBasePlayer) {
+        if (this.board.check(currentBasePlayer.getSymbol())) {
+            lastPlayerToWin = currentBasePlayer.getSymbol();
 
-            if(currentPlayer.getSymbol() == 'X') {
+            if(currentBasePlayer.getSymbol() == 'X') {
                 this.playerX.incrementWinsCount();
-            } else if (currentPlayer.getSymbol() == 'O') {
+            } else if (currentBasePlayer.getSymbol() == 'O') {
                 this.playerO.incrementWinsCount();
             }
 
-            this.endRound(currentPlayer);
+            this.endRound(currentBasePlayer);
 
             if(this.round < 3 && !this.somePlayerHasWon) {
                 this.beginRound();
             }
         } else if (this.board.isFull()) {
-            this.endRound(currentPlayer);
+            this.endRound(currentBasePlayer);
 
             if(this.round < 3 && !this.somePlayerHasWon) {
                 this.beginRound();
@@ -93,20 +97,20 @@ public class GameEngine {
         this.board.setDisplayed(true);
     }
 
-    private void endRound(Player currentPlayer) {
+    private void endRound(BasePlayer currentBasePlayer) {
         this.display.showBoard();
 
         if (this.round < 3 && Math.abs(this.playerX.getWinsCount() - this.playerO.getWinsCount()) < 2) {
             if (this.board.isFull()) {
                 System.out.printf("Sorry, but the game has been a cat game - there are no winners... :(\n" + NEXT_PLAYER,
-                        currentPlayer.getSymbol() == 'X' ? 'O' : 'X');
+                        currentBasePlayer.getSymbol() == 'X' ? 'O' : 'X');
             } else {
                 System.out.printf(
                         CONGRATULATIONS + "They have won this round!\n" + NEXT_PLAYER,
-                        currentPlayer.getSymbol(),
-                        currentPlayer.getSymbol() == 'X' ? 'O' : 'X');
+                        currentBasePlayer.getSymbol(),
+                        currentBasePlayer.getSymbol() == 'X' ? 'O' : 'X');
             }
-            this.board.clearBoard();
+            this.board.clear();
         } else {
             this.somePlayerHasWon = true;
 
@@ -116,7 +120,7 @@ public class GameEngine {
                         this.playerO.getWinsCount());
             } else {
                 System.out.printf(GAME_OVER + CONGRATULATIONS + "They have won the match!\n" + CURRENT_STATUS,
-                        currentPlayer.getSymbol(),
+                        currentBasePlayer.getSymbol(),
                         this.playerX.getWinsCount(),
                         this.playerO.getWinsCount());
             }

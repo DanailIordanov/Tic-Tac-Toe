@@ -1,12 +1,14 @@
-public class Display {
+package game;
+
+class Display {
 
     private Board board;
 
-    public Display(Board board) {
+    Display(Board board) {
         this.board = board;
     }
 
-    public void showBoard() {
+    void showBoard() {
         System.out.println("-------------");
         for	(var i = 1; i <= this.board.getLength(); i++) {
 
