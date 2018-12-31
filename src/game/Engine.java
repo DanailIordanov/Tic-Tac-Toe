@@ -8,13 +8,14 @@ import java.util.Scanner;
 
 public class Engine {
 
-    private static final String CURRENT_STATUS = "Current status: %d : %d\n";
-    private static final String NEXT_PLAYER = "Now it is Player %s's turn\n";
-    private static final String CONGRATULATIONS = "Congratulations to Player %s!\n";
-    private static final String GAME_OVER = "Game over!\n";
+    private static final String CURRENT_STATUS = "Current status: %d : %d\r\n";
+    private static final String NEXT_PLAYER = "Now it is Player %s's turn\r\n";
+    private static final String CONGRATULATIONS = "Congratulations to Player %s!\r\n";
+    private static final String GAME_OVER = "Game over!\r\n";
 
     private Board board;
     private Display display;
+    private Scanner scanner;
     private BasePlayer playerX;
     private BasePlayer playerO;
     private char lastPlayerToWin;
@@ -24,13 +25,15 @@ public class Engine {
     public Engine(Scanner scanner) {
         this.board = new Board();
         this.display = new Display(this.board);
+        this.scanner = scanner;
         this.playerX = new RegularPlayer('X', this.board, scanner);
-        this.playerO = new ArtificialPlayer('O', this.board, scanner);
     }
 
 
     public void run() {
         var counter = 0;
+
+        this.chooseGameType();
 
         this.beginRound();
 
@@ -48,6 +51,23 @@ public class Engine {
             this.endTurn(currentPlayer);
         }
 
+    }
+
+    private void chooseGameType() {
+        System.out.println("Please enter 1 if you want to play with another person,\r\nor 2 if you want to play with an AI player.");
+        var inputIsValid = false;
+        while (!inputIsValid) {
+            var gameType = this.scanner.nextInt();
+            if (gameType == 1) {
+                this.playerO = new RegularPlayer('O', this.board, this.scanner);
+                inputIsValid = true;
+            } else if(gameType == 2) {
+                this.playerO = new ArtificialPlayer('O', this.board, this.scanner);
+                inputIsValid = true;
+            } else {
+                System.out.println("This is an invalid game type, please enter 1 to play\r\nwith another person or 2 to play with an AI player!");
+            }
+        }
     }
 
     private BasePlayer choosePlayer(int counter, char lastPlayerToWin) {
@@ -88,7 +108,7 @@ public class Engine {
         System.out.printf(CURRENT_STATUS, this.playerX.getWinsCount(), this.playerO.getWinsCount());
 
         if (this.round < 3) {
-            System.out.printf("Begin round %d!\n", this.round);
+            System.out.printf("Begin round %d!\r\n", this.round);
         } else {
             System.out.println("Final round!");
         }
@@ -102,7 +122,7 @@ public class Engine {
 
         if (this.round < 3 && Math.abs(this.playerX.getWinsCount() - this.playerO.getWinsCount()) < 2) {
             if (this.board.isFull()) {
-                System.out.printf("Sorry, but the game has been a cat game - there are no winners... :(\n" + NEXT_PLAYER,
+                System.out.printf("Sorry, but the game has been a cat game - there are no winners... :(\r\n" + NEXT_PLAYER,
                         currentBasePlayer.getSymbol() == 'X' ? 'O' : 'X');
             } else {
                 System.out.printf(
@@ -115,11 +135,11 @@ public class Engine {
             this.somePlayerHasWon = true;
 
             if (this.playerX.getWinsCount() == this.playerO.getWinsCount()) {
-                System.out.printf(GAME_OVER + "Sorry, but there are no winners in this match... :(\n" + CURRENT_STATUS,
+                System.out.printf(GAME_OVER + "Sorry, but there are no winners in this match... :(\r\n" + CURRENT_STATUS,
                         this.playerX.getWinsCount(),
                         this.playerO.getWinsCount());
             } else {
-                System.out.printf(GAME_OVER + CONGRATULATIONS + "They have won the match!\n" + CURRENT_STATUS,
+                System.out.printf(GAME_OVER + CONGRATULATIONS + "They have won the match!\r\n" + CURRENT_STATUS,
                         currentBasePlayer.getSymbol(),
                         this.playerX.getWinsCount(),
                         this.playerO.getWinsCount());
