@@ -1,10 +1,6 @@
 package game;
 
-import players.ArtificialPlayer;
 import players.BasePlayer;
-import players.RegularPlayer;
-
-import java.util.Scanner;
 
 public class Engine {
 
@@ -15,25 +11,21 @@ public class Engine {
 
     private Board board;
     private Display display;
-    private Scanner scanner;
     private BasePlayer playerX;
     private BasePlayer playerO;
     private char lastPlayerToWin;
     private int round;
     private boolean somePlayerHasWon;
 
-    public Engine(Scanner scanner) {
-        this.board = new Board();
-        this.display = new Display(this.board);
-        this.scanner = scanner;
-        this.playerX = new RegularPlayer('X', this.board, scanner);
+    public Engine(Board board, Display display, BasePlayer firstPlayer, BasePlayer secondPlayer) {
+        this.board = board;
+        this.display = display;
+        this.playerX = firstPlayer;
+        this.playerO = secondPlayer;
     }
-
 
     public void run() {
         var counter = 0;
-
-        this.chooseGameType();
 
         this.beginRound();
 
@@ -53,55 +45,6 @@ public class Engine {
 
     }
 
-    private void chooseGameType() {
-        System.out.println("Please enter 1 if you want to play with another person,\r\nor 2 if you want to play with an AI player.");
-        var inputIsValid = false;
-        while (!inputIsValid) {
-            var gameType = this.scanner.nextInt();
-            if (gameType == 1) {
-                this.playerO = new RegularPlayer('O', this.board, this.scanner);
-                inputIsValid = true;
-            } else if(gameType == 2) {
-                this.playerO = new ArtificialPlayer('O', this.board, this.scanner);
-                inputIsValid = true;
-            } else {
-                System.out.println("This is an invalid game type, please enter 1 to play\r\nwith another person or 2 to play with an AI player!");
-            }
-        }
-    }
-
-    private BasePlayer choosePlayer(int counter, char lastPlayerToWin) {
-        if (lastPlayerToWin == 'O' && this.round < 2) {
-            return counter % 2 == 0 ? this.playerO : this.playerX;
-        } else {
-            return counter % 2 == 0 ? this.playerX : this.playerO;
-        }
-    }
-
-    private void endTurn(BasePlayer currentBasePlayer) {
-        if (this.board.check(currentBasePlayer.getSymbol())) {
-            lastPlayerToWin = currentBasePlayer.getSymbol();
-
-            if(currentBasePlayer.getSymbol() == 'X') {
-                this.playerX.incrementWinsCount();
-            } else if (currentBasePlayer.getSymbol() == 'O') {
-                this.playerO.incrementWinsCount();
-            }
-
-            this.endRound(currentBasePlayer);
-
-            if(this.round < 3 && !this.somePlayerHasWon) {
-                this.beginRound();
-            }
-        } else if (this.board.isFull()) {
-            this.endRound(currentBasePlayer);
-
-            if(this.round < 3 && !this.somePlayerHasWon) {
-                this.beginRound();
-            }
-        }
-    }
-
     private void beginRound() {
         this.round++;
 
@@ -117,18 +60,50 @@ public class Engine {
         this.board.setDisplayed(true);
     }
 
-    private void endRound(BasePlayer currentBasePlayer) {
+    private BasePlayer choosePlayer(int counter, char lastPlayerToWin) {
+        if (lastPlayerToWin == 'O' && this.round < 2) {
+            return counter % 2 == 0 ? this.playerO : this.playerX;
+        } else {
+            return counter % 2 == 0 ? this.playerX : this.playerO;
+        }
+    }
+
+    private void endTurn(BasePlayer currentPlayer) {
+        if (this.board.check(currentPlayer.getSymbol())) {
+            lastPlayerToWin = currentPlayer.getSymbol();
+
+            if(currentPlayer.getSymbol() == 'X') {
+                this.playerX.incrementWinsCount();
+            } else if (currentPlayer.getSymbol() == 'O') {
+                this.playerO.incrementWinsCount();
+            }
+
+            this.endRound(currentPlayer);
+
+            if(this.round < 3 && !this.somePlayerHasWon) {
+                this.beginRound();
+            }
+        } else if (this.board.isFull()) {
+            this.endRound(currentPlayer);
+
+            if(this.round < 3 && !this.somePlayerHasWon) {
+                this.beginRound();
+            }
+        }
+    }
+
+    private void endRound(BasePlayer currentPlayer) {
         this.display.showBoard();
 
         if (this.round < 3 && Math.abs(this.playerX.getWinsCount() - this.playerO.getWinsCount()) < 2) {
             if (this.board.isFull()) {
                 System.out.printf("Sorry, but the game has been a cat game - there are no winners... :(\r\n" + NEXT_PLAYER,
-                        currentBasePlayer.getSymbol() == 'X' ? 'O' : 'X');
+                        currentPlayer.getSymbol() == 'X' ? 'O' : 'X');
             } else {
                 System.out.printf(
                         CONGRATULATIONS + "They have won this round!\n" + NEXT_PLAYER,
-                        currentBasePlayer.getSymbol(),
-                        currentBasePlayer.getSymbol() == 'X' ? 'O' : 'X');
+                        currentPlayer.getSymbol(),
+                        currentPlayer.getSymbol() == 'X' ? 'O' : 'X');
             }
             this.board.clear();
         } else {
@@ -140,7 +115,7 @@ public class Engine {
                         this.playerO.getWinsCount());
             } else {
                 System.out.printf(GAME_OVER + CONGRATULATIONS + "They have won the match!\r\n" + CURRENT_STATUS,
-                        currentBasePlayer.getSymbol(),
+                        currentPlayer.getSymbol(),
                         this.playerX.getWinsCount(),
                         this.playerO.getWinsCount());
             }
