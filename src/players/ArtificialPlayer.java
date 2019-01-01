@@ -1,5 +1,6 @@
 package players;
 
+import exceptions.InvalidMoveException;
 import game.Board;
 
 import java.util.Random;
@@ -14,8 +15,8 @@ public class ArtificialPlayer extends BasePlayer {
     @Override
     public void makeMove() {
         this.choosePlaceOnBoard();
-        System.out.println(super.move);
-        super.board.setMember(super.move, super.symbol);
+        System.out.println(super.getMove());
+        super.board.setMember(super.getMove(), super.symbol);
     }
 
     private void choosePlaceOnBoard() {
@@ -23,10 +24,11 @@ public class ArtificialPlayer extends BasePlayer {
 
         var isRandomValid = false;
         while(!isRandomValid) {
-            var place = random.nextInt(9);
-            if (super.board.getMember(place) == ' ') {
+            try {
+                super.setMove(random.nextInt(9));
                 isRandomValid = true;
-                super.move = place;
+            } catch (InvalidMoveException e) {
+                System.out.print(e.getMessage());
             }
         }
     }
